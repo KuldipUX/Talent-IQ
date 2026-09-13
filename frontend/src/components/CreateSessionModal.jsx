@@ -11,16 +11,29 @@ function CreateSessionModal({
   isCreating,
 }) {
   const [problems, setProblems] = useState([]);
+  const [loadingProblems, setLoadingProblems] = useState(false);
+  const [problemError, setProblemError] = useState("");
 
   useEffect(() => {
     if (!isOpen) return;
 
     const loadProblems = async () => {
+      setLoadingProblems(true);
+      setProblemError("");
+
       try {
         const data = await problemApi.getProblems({ page: 1, limit: 100 });
         setProblems(data.problems || []);
       } catch (error) {
+        const message =
+          error?.response?.status === 401 || error?.response?.status === 403
+            ? "Please sign in again to load problems."
+            : "Problems could not be loaded from the backend.";
+
         setProblems([]);
+        setProblemError(message);
+      } finally {
+        setLoadingProblems(false);
       }
     };
 
@@ -53,7 +66,7 @@ function CreateSessionModal({
               }}
             >
               <option value="" disabled>
-                Choose a coding problem...
+                {loadingProblems ? "Loading problems..." : "Choose a coding problem..."}
               </option>
 
               {problems.map((problem) => (
@@ -62,6 +75,10 @@ function CreateSessionModal({
                 </option>
               ))}
             </select>
+
+            {problemError && (
+              <div className="text-sm text-error font-medium mt-2">{problemError}</div>
+            )}
           </div>
 
           {roomConfig.problem && (
