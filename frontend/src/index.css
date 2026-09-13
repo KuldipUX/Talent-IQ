@@ -1,0 +1,524 @@
+@import "tailwindcss";
+@plugin "daisyui"{
+    themes:all
+}
+
+/* Neo-brutalist product theme. Existing components keep their behavior while
+   shared utility classes inherit one visual language across every route. */
+:root {
+    --ink: #171717;
+    --paper: #f7f3ea;
+    --paper-dark: #ebe5d8;
+    --acid: #dfff3f;
+    --cyan: #72e6e1;
+    --pink: #ff7ab6;
+    --orange: #ff9b54;
+    --white: #fffdf7;
+    --brutal-shadow: 5px 5px 0 var(--ink);
+    --brutal-shadow-small: 3px 3px 0 var(--ink);
+}
+
+.text-ink {
+    color: var(--ink) !important;
+}
+
+.brutal-yellow,
+.brutal-icon-yellow {
+    background-color: var(--acid) !important;
+    color: var(--ink) !important;
+}
+
+.brutal-cyan,
+.brutal-icon-cyan {
+    background-color: var(--cyan) !important;
+    color: var(--ink) !important;
+}
+
+.brutal-pink,
+.brutal-icon-pink {
+    background-color: var(--pink) !important;
+    color: var(--ink) !important;
+}
+
+.brutal-icon-yellow,
+.brutal-icon-cyan,
+.brutal-icon-pink {
+    border: 3px solid var(--ink);
+    box-shadow: var(--brutal-shadow-small);
+}
+
+html {
+    background: var(--paper);
+}
+
+body {
+    min-width: 320px;
+    color: var(--ink);
+    background-color: var(--paper);
+    background-image: radial-gradient(#c9c1b3 0.75px, transparent 0.75px);
+    background-size: 13px 13px;
+    font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+}
+
+button,
+a,
+select,
+input,
+textarea {
+    -webkit-tap-highlight-color: transparent;
+}
+
+a,
+button {
+    transition: transform 140ms ease, box-shadow 140ms ease, background-color 140ms ease;
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+    outline: 3px solid var(--pink);
+    outline-offset: 3px;
+}
+
+/* Kill soft, glossy surfaces from the original theme. */
+.bg-gradient-to-br,
+.bg-gradient-to-r,
+.bg-gradient-to-b,
+.bg-gradient-to-l {
+    background-image: none !important;
+}
+
+.bg-clip-text {
+    background-image: none !important;
+    background-clip: border-box !important;
+    -webkit-background-clip: border-box !important;
+    color: var(--ink) !important;
+}
+
+.text-primary {
+    color: #607d00 !important;
+}
+
+.text-secondary {
+    color: #087c78 !important;
+}
+
+.text-accent {
+    color: #b21662 !important;
+}
+
+.bg-base-100,
+.bg-base-200,
+.bg-base-300 {
+    background-color: var(--paper) !important;
+}
+
+.text-base-content,
+.text-base-content\/70,
+.text-base-content\/80,
+.text-base-content\/90,
+.text-base-content\/60 {
+    color: var(--ink) !important;
+}
+
+.card,
+.stats,
+.modal-box,
+.alert {
+    border: 3px solid var(--ink) !important;
+    border-radius: 0 !important;
+    box-shadow: var(--brutal-shadow) !important;
+    background: var(--white) !important;
+}
+
+.card:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 7px 7px 0 var(--ink) !important;
+}
+
+.btn {
+    min-height: 2.75rem;
+    border: 3px solid var(--ink) !important;
+    border-radius: 0 !important;
+    box-shadow: var(--brutal-shadow-small);
+    color: var(--ink) !important;
+    font-weight: 900;
+    letter-spacing: 0.01em;
+}
+
+.btn:hover:not(:disabled) {
+    transform: translate(-2px, -2px);
+    box-shadow: 5px 5px 0 var(--ink);
+}
+
+.btn:active:not(:disabled) {
+    transform: translate(2px, 2px);
+    box-shadow: 1px 1px 0 var(--ink);
+}
+
+.btn-primary,
+.bg-primary {
+    background-color: var(--acid) !important;
+}
+
+.btn-secondary,
+.bg-secondary {
+    background-color: var(--cyan) !important;
+}
+
+.btn-accent,
+.bg-accent {
+    background-color: var(--pink) !important;
+}
+
+.btn-error,
+.bg-error {
+    background-color: var(--orange) !important;
+}
+
+.btn-ghost,
+.btn-outline {
+    background-color: var(--white) !important;
+}
+
+.btn-disabled,
+.btn:disabled {
+    opacity: 0.55;
+    box-shadow: none;
+}
+
+.badge,
+.input,
+.select,
+select,
+textarea {
+    border: 3px solid var(--ink) !important;
+    border-radius: 0 !important;
+}
+
+.badge {
+    font-weight: 900;
+    color: var(--ink) !important;
+}
+
+.badge-primary,
+.badge-success {
+    background-color: var(--acid) !important;
+}
+
+.badge-secondary,
+.badge-info {
+    background-color: var(--cyan) !important;
+}
+
+.badge-accent,
+.badge-warning {
+    background-color: var(--pink) !important;
+}
+
+.badge-error {
+    background-color: var(--orange) !important;
+}
+
+.input,
+.select,
+select,
+textarea {
+    background: var(--white) !important;
+    color: var(--ink) !important;
+    box-shadow: var(--brutal-shadow-small);
+}
+
+.input:focus,
+.select:focus,
+select:focus,
+textarea:focus {
+    outline: 0;
+    border-color: var(--pink) !important;
+    box-shadow: 5px 5px 0 var(--pink);
+}
+
+.navbar,
+nav {
+    background: var(--acid) !important;
+    border-bottom: 3px solid var(--ink) !important;
+    box-shadow: 0 4px 0 var(--ink) !important;
+    backdrop-filter: none !important;
+}
+
+nav a:hover {
+    transform: translate(-1px, -1px);
+}
+
+nav a[class*="bg-primary"] {
+    border: 3px solid var(--ink);
+    box-shadow: var(--brutal-shadow-small);
+}
+
+.shadow,
+.shadow-sm,
+.shadow-lg,
+.shadow-xl,
+.shadow-2xl {
+    box-shadow: var(--brutal-shadow) !important;
+}
+
+.rounded-sm,
+.rounded,
+.rounded-md,
+.rounded-lg,
+.rounded-xl,
+.rounded-2xl,
+.rounded-3xl {
+    border-radius: 0 !important;
+}
+
+/* Keep circular status dots and avatars circular where shape communicates meaning. */
+.rounded-full {
+    border-radius: 999px !important;
+}
+
+h1,
+h2,
+h3,
+h4 {
+    font-family: Impact, "Arial Black", sans-serif;
+    letter-spacing: 0.015em;
+    color: var(--ink);
+}
+
+code,
+pre,
+.font-mono {
+    font-family: "Courier New", monospace;
+}
+
+/* Page bands remain responsive and readable at every viewport size. */
+.container,
+.max-w-6xl,
+.max-w-7xl {
+    width: min(100% - 2rem, 80rem);
+}
+
+@media (max-width: 640px) {
+    .container,
+    .max-w-6xl,
+    .max-w-7xl {
+        width: min(100% - 1rem, 80rem);
+    }
+
+    .card,
+    .stats,
+    .modal-box,
+    .alert {
+        box-shadow: var(--brutal-shadow-small) !important;
+    }
+
+    .card:hover {
+        transform: none;
+        box-shadow: var(--brutal-shadow-small) !important;
+    }
+}
+
+/* Session chat: keep Stream's behavior, but match the interview workspace. */
+.session-chat-panel {
+    min-width: 0;
+    background: var(--paper);
+    border: 3px solid var(--ink);
+    border-radius: 0;
+    box-shadow: var(--brutal-shadow-small);
+    color: var(--ink);
+}
+
+.session-chat-open,
+.session-chat-expanded {
+    flex: 0 0 auto;
+    width: clamp(20rem, 28vw, 26rem);
+}
+
+.session-chat-expanded {
+    width: clamp(28rem, 42vw, 42rem);
+}
+
+.session-chat-closed {
+    width: 0;
+    flex: 0 0 0;
+}
+
+.session-chat-header {
+    min-height: 68px;
+    padding: 0.8rem 0.85rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--acid);
+    border-bottom: 3px solid var(--ink);
+}
+
+.session-chat-header h3,
+.session-chat-context,
+.session-chat-body {
+    color: var(--ink);
+}
+
+.session-chat-icon {
+    width: 2rem;
+    height: 2rem;
+    display: grid;
+    place-items: center;
+    flex: 0 0 auto;
+    color: var(--ink);
+    background: var(--cyan);
+    border: 2px solid var(--ink);
+    border-radius: 0.2rem;
+}
+
+.session-chat-close {
+    width: 2rem;
+    height: 2rem;
+    display: grid;
+    place-items: center;
+    color: var(--ink);
+    background: var(--paper);
+    border: 2px solid var(--ink);
+    border-radius: 0;
+    box-shadow: var(--brutal-shadow-small);
+    transition: transform 180ms ease, background 180ms ease, color 180ms ease;
+}
+
+.session-chat-close:hover {
+    color: var(--ink);
+    background: var(--pink);
+}
+
+.session-chat-context {
+    padding: 0.7rem 0.8rem;
+    color: var(--ink);
+    font-size: 0.72rem;
+    line-height: 1.2;
+    background: var(--paper-dark);
+    border-bottom: 2px solid var(--ink);
+}
+
+.session-chat-body .str-chat {
+    --str-chat__primary-color: var(--acid);
+    --str-chat__active-primary-color: var(--orange);
+    --str-chat__background-color: var(--paper);
+    --str-chat__secondary-background-color: var(--paper-dark);
+    --str-chat__message-bubble-color: var(--white);
+    --str-chat__own-message-bubble-color: var(--cyan);
+    height: 100%;
+    color: var(--ink);
+}
+
+.session-chat-body .str-chat__main-panel {
+    background: var(--paper);
+}
+
+.session-chat-body .str-chat__list {
+    padding: 0.9rem 0.65rem;
+    background: var(--paper);
+}
+
+.session-chat-body .str-chat__message-simple {
+    margin-bottom: 0.25rem;
+}
+
+.session-chat-body .str-chat__message-simple-text-inner {
+    border-radius: 0;
+    border: 2px solid var(--ink);
+    box-shadow: var(--brutal-shadow-small);
+    color: var(--ink);
+    background: var(--white);
+}
+
+.session-chat-body .str-chat__message-simple-text-inner[data-message-type="own"] {
+    background: var(--cyan);
+}
+
+.session-chat-body .str-chat__message-input {
+    padding: 0.65rem;
+    background: var(--paper-dark);
+    border-top: 3px solid var(--ink);
+}
+
+.session-chat-body .str-chat__message-textarea-container {
+    border: 2px solid var(--ink);
+    border-radius: 0;
+    background: var(--white);
+}
+
+.session-chat-body .str-chat__textarea textarea {
+    color: var(--ink);
+}
+
+.session-chat-body .str-chat__send-button {
+    color: var(--ink);
+    background: var(--acid);
+    border: 2px solid var(--ink);
+    box-shadow: var(--brutal-shadow-small);
+}
+
+.session-video-frame {
+    background: var(--paper-dark);
+    border: 3px solid var(--ink);
+    border-radius: 0;
+    box-shadow: var(--brutal-shadow-small);
+    overflow: visible;
+    min-height: 16rem;
+}
+
+.session-video-frame > div,
+.session-video-frame .str-video__speaker-layout,
+.session-video-frame .str-video__speaker-layout > div {
+    min-height: 100%;
+    overflow: visible;
+}
+
+@media (max-width: 900px) {
+    .session-page > div:last-child {
+        min-height: 0;
+    }
+
+    .session-page .str-video {
+        min-height: 22rem;
+    }
+
+    .session-chat-panel {
+        position: absolute;
+        inset: 0;
+        z-index: 20;
+        width: auto !important;
+        min-height: 0;
+        border-radius: 0;
+    }
+
+    .session-chat-open,
+    .session-chat-expanded {
+        flex: 1 1 auto;
+    }
+}
+
+@media (max-width: 640px) {
+    .session-page nav {
+        min-height: 3.5rem;
+    }
+
+    .session-page .str-video {
+        min-height: 19rem;
+    }
+
+    .session-chat-header {
+        min-height: 60px;
+    }
+
+    .session-chat-context {
+        font-size: 0.65rem;
+    }
+
+    .session-chat-toggle {
+        min-height: 2.5rem;
+    }
+}
