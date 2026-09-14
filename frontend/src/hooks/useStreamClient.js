@@ -75,12 +75,18 @@ function useStreamClient(session, loadingSession, isHost, isParticipant) {
           channelId: session.callId,
         });
       } catch (error) {
-        console.error("[stream] failed to initialize call", {
+        // The session itself is still usable even when Stream video/chat cannot
+        // be provisioned from the deployed environment. Avoid a hard front-end
+        // toast because it masks the real session record and makes the UI feel broken.
+        console.warn("[stream] optional call/chat initialization failed", {
           callId: session?.callId,
           status: session?.status,
-          error,
+          error: error?.message || error,
         });
-        toast.error("Failed to join video call");
+        setStreamClient(null);
+        setCall(null);
+        setChatClient(null);
+        setChannel(null);
       } finally {
         if (isMounted) {
           setIsInitializingCall(false);
