@@ -26,60 +26,88 @@ async function expireStaleSessions() {
   );
 }
 
-export async function createSession(req,res) {
+export async function createSession(req, res) {
   let session;
   let videoCall;
   let chatChannel;
-    try{
-      const {problem,difficulty} = req.body
-      const userId = req.user._id
-      const clerkId = req.user.clerkId
 
-      const normalizedDifficulty = String(difficulty || "").toLowerCase();
+  try {
+    const { problem, difficulty } = req.body;
+    const userId = req.user._id;
+    const clerkId = req.user.clerkId;
 
-      if(!problem || !["easy", "medium", "hard"].includes(normalizedDifficulty)){
-        return res.status(400).json({message:"Problem and difficulty are required"})
-      }
+    const normalizedDifficulty = String(difficulty || "").toLowerCase();
 
-      const problemDocument = await Problem.findOne({ title: problem }).lean();
-
-      if (!problemDocument) {
-        return res.status(404).json({ message: "Problem not found in question bank" });
-      }
-
-      //generate a unique call id for stream video
-      const callId = `session_${crypto.randomUUID()}`
-      //create session in db
-      session = await Session.create({problem: problemDocument.title, difficulty: normalizedDifficulty, host:userId, callId});
-     //create stream video call
-    videoCall = videoClient.video.call("default",callId);
-    await videoCall.getOrCreate({
-        data:{
-            created_by_id:clerkId,
-            custom:{problem: problemDocument.title, difficulty: normalizedDifficulty, sessionId:session._id.toString()},
-        }
-     })
-     //chat messaging
-    chatChannel = chatClient.channel("messaging",callId,{
-        name:`${problemDocument.title} Session`,
-        created_by_id:clerkId,
-        members:[clerkId]
-     })
-    await chatChannel.create()
-     res.status(201).json({session:session})
-    } catch(error){
-        console.error("Error in createSession controller:", error);
-        try { if (chatChannel) await chatChannel.delete(); } catch (cleanupError) {
-          console.error("Failed to clean up chat channel:", cleanupError);
-        }
-        try { if (videoCall) await videoCall.delete({ hard: true }); } catch (cleanupError) {
-          console.error("Failed to clean up video call:", cleanupError);
-        }
-        try { if (session) await Session.deleteOne({ _id: session._id }); } catch (cleanupError) {
-          console.error("Failed to clean up session:", cleanupError);
-        }
-        res.status(502).json({message:"Unable to provision the interview session. Please try again."});
+    if (!problem || !["easy", "medium", "hard"].includes(normalizedDifficulty)) {
+      return res.status(400).json({ message: "Problem and difficulty are required" });
     }
+
+    const problemDocument = await Problem.findOne({ title: problem });
+    if (!problemDocument) {
+      return res.status(404).json({ message: "Problem not found in question bank" });
+    }
+
+    const problemTitle = problemDocument.title || problem;
+    const callId = `session_${crypto.randomUUID()}`;
+
+    session = await Session.create({
+      problem: problemTitle,
+      difficulty: normalizedDifficulty,
+      host: userId,
+      callId,
+    });
+
+    try {
+      videoCall = videoClient.video.call("default", callId);
+      await videoCall.getOrCreate({
+        data: {
+          created_by_id: clerkId,
+          custom: {
+            problem: problemTitle,
+            difficulty: normalizedDifficulty,
+            sessionId: session._id.toString(),
+          },
+        },
+      });
+    } catch (streamVideoError) {
+      console.error("Stream video provisioning failed for session:", streamVideoError?.message || streamVideoError);
+    }
+
+    try {
+      chatChannel = chatClient.channel("messaging", callId, {
+        name: `${problemTitle} Session`,
+        created_by_id: clerkId,
+        members: [clerkId],
+      });
+      await chatChannel.create();
+    } catch (streamChatError) {
+      console.error("Stream chat provisioning failed for session:", streamChatError?.message || streamChatError);
+    }
+
+    return res.status(201).json({ session });
+  } catch (error) {
+    console.error("Error in createSession controller:", error);
+
+    try {
+      if (chatChannel) await chatChannel.delete();
+    } catch (cleanupError) {
+      console.error("Failed to clean up chat channel:", cleanupError);
+    }
+
+    try {
+      if (videoCall) await videoCall.delete({ hard: true });
+    } catch (cleanupError) {
+      console.error("Failed to clean up video call:", cleanupError);
+    }
+
+    try {
+      if (session) await Session.deleteOne({ _id: session._id });
+    } catch (cleanupError) {
+      console.error("Failed to clean up session:", cleanupError);
+    }
+
+    return res.status(502).json({ message: "Unable to provision the interview session. Please try again." });
+  }
 }
 export async function getActiveSessions(req,res) {
     try {
