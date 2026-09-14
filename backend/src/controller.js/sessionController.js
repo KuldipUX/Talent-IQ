@@ -3,6 +3,8 @@ import Session from "../models/Session.js";
 import Problem from "../models/Problem.js";
 import crypto from "node:crypto";
 
+const escapeRegex = (value = "") => String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
 const SESSION_LIFETIME_MS = 1000 * 60 * 60 * 24;
 
 async function reconcileSessionLifetime(session) {
@@ -42,7 +44,9 @@ export async function createSession(req, res) {
       return res.status(400).json({ message: "Problem and difficulty are required" });
     }
 
-    const problemDocument = await Problem.findOne({ title: problem });
+    const problemDocument = await Problem.findOne({
+      title: { $regex: `^${escapeRegex(problem)}$`, $options: "i" },
+    });
     if (!problemDocument) {
       return res.status(404).json({ message: "Problem not found in question bank" });
     }
