@@ -1,4 +1,3 @@
-import { chatClient, videoClient } from "../lib/stream.js";
 import Session from "../models/Session.js";
 import Problem from "../models/Problem.js";
 import crypto from "node:crypto";
@@ -61,32 +60,12 @@ export async function createSession(req, res) {
       callId,
     });
 
-    try {
-      videoCall = videoClient.video.call("default", callId);
-      await videoCall.getOrCreate({
-        data: {
-          created_by_id: clerkId,
-          custom: {
-            problem: problemTitle,
-            difficulty: normalizedDifficulty,
-            sessionId: session._id.toString(),
-          },
-        },
-      });
-    } catch (streamVideoError) {
-      console.error("Stream video provisioning failed for session:", streamVideoError?.message || streamVideoError);
-    }
-
-    try {
-      chatChannel = chatClient.channel("messaging", callId, {
-        name: `${problemTitle} Session`,
-        created_by_id: clerkId,
-        members: [clerkId],
-      });
-      await chatChannel.create();
-    } catch (streamChatError) {
-      console.error("Stream chat provisioning failed for session:", streamChatError?.message || streamChatError);
-    }
+    console.info("Session created without Stream provisioning:", {
+      sessionId: session._id.toString(),
+      callId,
+      problem: problemTitle,
+      difficulty: normalizedDifficulty,
+    });
 
     return res.status(201).json({ session });
   } catch (error) {
