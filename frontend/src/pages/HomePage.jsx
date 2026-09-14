@@ -11,6 +11,10 @@ import {
 import { SignInButton } from "@clerk/react";
 
 function HomePage({ redirectUrl = "/dashboard" }) {
+  const normalizedRedirectUrl = redirectUrl?.startsWith("http")
+    ? redirectUrl
+    : `${window.location.origin}${redirectUrl.startsWith("/") ? redirectUrl : `/${redirectUrl}`}`;
+
   return (
     <div className="bg-gradient-to-br from-base-100 via-base-200 to-base-300">
       {/* NAVBAR */}
@@ -34,7 +38,7 @@ function HomePage({ redirectUrl = "/dashboard" }) {
           </Link>
 
           {/* AUTH BTN */}
-          <SignInButton mode="modal" forceRedirectUrl={redirectUrl}>
+          <SignInButton mode="modal" forceRedirectUrl={normalizedRedirectUrl}>
             <button className="btn btn-primary group px-6 py-3 font-semibold text-sm flex items-center gap-2">
               <span>Get Started</span>
               <ArrowRightIcon className="size-4 group-hover:translate-x-0.5 transition-transform" />
@@ -84,7 +88,7 @@ function HomePage({ redirectUrl = "/dashboard" }) {
 
             {/* CTA Buttons */}
             <div className="flex flex-wrap gap-4">
-              <SignInButton mode="modal" forceRedirectUrl={redirectUrl}>
+              <SignInButton mode="modal" forceRedirectUrl={normalizedRedirectUrl}>
                 <button className="btn btn-primary btn-lg">
                   Start Coding Now
                   <ArrowRightIcon className="size-5" />
