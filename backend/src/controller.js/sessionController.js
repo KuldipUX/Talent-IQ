@@ -1,3 +1,4 @@
+import { chatClient, videoClient } from "../lib/stream.js";
 import Session from "../models/Session.js";
 import Problem from "../models/Problem.js";
 import crypto from "node:crypto";
@@ -34,37 +35,90 @@ export async function createSession(req, res) {
 
   try {
     const { problem, difficulty } = req.body;
-    const userId = req.user._id;
-    const clerkId = req.user.clerkId;
+    const userId = req.user?._id;
+    const clerkId = req.user?.clerkId;
 
-    const normalizedDifficulty = String(difficulty || "").toLowerCase();
-
-    if (!problem || !["easy", "medium", "hard"].includes(normalizedDifficulty)) {
-      return res.status(400).json({ message: "Problem and difficulty are required" });
+    if (!userId || !clerkId) {
+      return res.status(401).json({ message: "Authentication required to create a session" });
     }
 
-    const problemDocument = await Problem.findOne({
-      title: { $regex: `^${escapeRegex(problem)}$`, $options: "i" },
+    const normalizedDifficulty = String(difficulty || "easy").toLowerCase();
+    const validDifficulty = ["easy", "medium", "hard"].includes(normalizedDifficulty)
+      ? normalizedDifficulty
+      : "easy";
+
+    if (!problem) {
+      return res.status(400).json({ message: "Problem is required" });
+    }
+
+    // Flexible problem lookup: exact, case-insensitive, slug, or partial
+    const trimmedProblem = String(problem).trim();
+    const escapedProblem = escapeRegex(trimmedProblem);
+    const problemSlug = trimmedProblem.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+
+    let problemDocument = await Problem.findOne({
+      $or: [
+        { title: { $regex: `^${escapedProblem}$`, $options: "i" } },
+        { slug: problemSlug },
+        { title: { $regex: escapedProblem, $options: "i" } },
+      ],
     });
-    if (!problemDocument) {
-      return res.status(404).json({ message: "Problem not found in question bank" });
+
+    // Handle known naming variations (e.g. Valid Parentheses vs Validate Parentheses)
+    if (!problemDocument && trimmedProblem.toLowerCase().includes("parenthes")) {
+      problemDocument = await Problem.findOne({
+        title: { $regex: "parenthes", $options: "i" },
+      });
     }
 
-    const problemTitle = problemDocument.title || problem;
+    const problemTitle = problemDocument?.title || trimmedProblem;
     const callId = `session_${crypto.randomUUID()}`;
 
     session = await Session.create({
       problem: problemTitle,
-      difficulty: normalizedDifficulty,
+      difficulty: validDifficulty,
       host: userId,
       callId,
     });
 
-    console.info("Session created without Stream provisioning:", {
+    // Safely provision Stream video call
+    try {
+      if (videoClient?.video) {
+        videoCall = videoClient.video.call("default", callId);
+        await videoCall.getOrCreate({
+          data: {
+            created_by_id: clerkId,
+            custom: {
+              problem: problemTitle,
+              difficulty: validDifficulty,
+              sessionId: session._id.toString(),
+            },
+          },
+        });
+      }
+    } catch (streamVideoError) {
+      console.warn("Non-fatal: Stream video provisioning warning:", streamVideoError?.message || streamVideoError);
+    }
+
+    // Safely provision Stream chat channel
+    try {
+      if (chatClient?.channel) {
+        chatChannel = chatClient.channel("messaging", callId, {
+          name: `${problemTitle} Session`,
+          created_by_id: clerkId,
+          members: [clerkId],
+        });
+        await chatChannel.create();
+      }
+    } catch (streamChatError) {
+      console.warn("Non-fatal: Stream chat provisioning warning:", streamChatError?.message || streamChatError);
+    }
+
+    console.info("Session created successfully:", {
       sessionId: session._id.toString(),
       callId,
       problem: problemTitle,
-      difficulty: normalizedDifficulty,
+      difficulty: validDifficulty,
     });
 
     return res.status(201).json({ session });
@@ -84,12 +138,12 @@ export async function createSession(req, res) {
     }
 
     try {
-      if (session) await Session.deleteOne({ _id: session._id });
+      if (session?._id) await Session.deleteOne({ _id: session._id });
     } catch (cleanupError) {
       console.error("Failed to clean up session:", cleanupError);
     }
 
-    return res.status(502).json({ message: "Unable to provision the interview session. Please try again." });
+    return res.status(500).json({ message: error?.message || "Failed to create session. Please try again." });
   }
 }
 export async function getActiveSessions(req,res) {
@@ -172,8 +226,14 @@ export async function joinSession(req, res) {
       return res.status(409).json({ message: "Session is full" });
     }
 
-    const channel = chatClient.channel("messaging", session.callId);
-    await channel.addMembers([clerkId]);
+    try {
+      if (chatClient?.channel) {
+        const channel = chatClient.channel("messaging", session.callId);
+        await channel.addMembers([clerkId]);
+      }
+    } catch (streamError) {
+      console.warn("Non-fatal: Stream chat addMembers failed:", streamError?.message || streamError);
+    }
 
     res.status(200).json({ session: updatedSession });
   } catch (error) {
@@ -202,12 +262,24 @@ export async function endSession(req, res) {
     }
 
     // delete stream video call
-    const call = videoClient.video.call("default", session.callId);
-    await call.delete({ hard: true });
+    try {
+      if (videoClient?.video) {
+        const call = videoClient.video.call("default", session.callId);
+        await call.delete({ hard: true });
+      }
+    } catch (streamError) {
+      console.warn("Non-fatal: Stream video delete failed:", streamError?.message || streamError);
+    }
 
     // delete stream chat channel
-    const channel = chatClient.channel("messaging", session.callId);
-    await channel.delete();
+    try {
+      if (chatClient?.channel) {
+        const channel = chatClient.channel("messaging", session.callId);
+        await channel.delete();
+      }
+    } catch (streamError) {
+      console.warn("Non-fatal: Stream chat delete failed:", streamError?.message || streamError);
+    }
 
     session.status = "completed";
     session.endedAt = new Date();

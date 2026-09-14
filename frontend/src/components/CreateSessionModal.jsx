@@ -1,6 +1,13 @@
 import { Code2Icon, LoaderIcon, PlusIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { problemApi } from "../api/problem.js";
+import { PROBLEMS } from "../data/problems.js";
+
+const fallbackProblems = Object.values(PROBLEMS).map((p, idx) => ({
+  _id: p.id || `preset-${idx}`,
+  title: p.title,
+  difficulty: p.difficulty || "Easy",
+}));
 
 function CreateSessionModal({
   isOpen,
@@ -23,15 +30,13 @@ function CreateSessionModal({
 
       try {
         const data = await problemApi.getProblems({ page: 1, limit: 100 });
-        setProblems(data.problems || []);
+        const list = Array.isArray(data?.problems) && data.problems.length > 0
+          ? data.problems
+          : fallbackProblems;
+        setProblems(list);
       } catch (error) {
-        const message =
-          error?.response?.status === 401 || error?.response?.status === 403
-            ? "Please sign in again to load problems."
-            : "Problems could not be loaded from the backend.";
-
-        setProblems([]);
-        setProblemError(message);
+        setProblems(fallbackProblems);
+        setProblemError("Using offline question list.");
       } finally {
         setLoadingProblems(false);
       }
@@ -60,7 +65,7 @@ function CreateSessionModal({
               onChange={(e) => {
                 const selectedProblem = problems.find((p) => p.title === e.target.value);
                 setRoomConfig({
-                  difficulty: selectedProblem?.difficulty || "",
+                  difficulty: selectedProblem?.difficulty || "Easy",
                   problem: e.target.value,
                 });
               }}

@@ -138,3 +138,74 @@ test("createSession should not fail the whole request when Stream video and chat
   videoClient.video.call = originalVideoCall;
   chatClient.channel = originalChatChannel;
 });
+
+test("createSession should succeed with problem title fallback even when question is not in DB", async () => {
+  const req = {
+    body: {
+      problem: "Trapping Rain Water",
+      difficulty: "Hard",
+    },
+    user: {
+      _id: "66c000000000000000000001",
+      clerkId: "user_123",
+      name: "Test User",
+    },
+  };
+
+  const res = {
+    statusCode: null,
+    payload: null,
+    status(code) {
+      this.statusCode = code;
+      return this;
+    },
+    json(payload) {
+      this.payload = payload;
+      return this;
+    },
+  };
+
+  const problemFindMock = mock.method(Problem, "findOne", async () => null);
+  const sessionCreateMock = mock.method(Session, "create", async (data) => ({
+    _id: "66c000000000000000000003",
+    ...data,
+  }));
+
+  await createSession(req, res);
+
+  assert.equal(res.statusCode, 201);
+  assert.equal(res.payload.session.problem, "Trapping Rain Water");
+  assert.equal(res.payload.session.difficulty, "hard");
+
+  problemFindMock.mock.restore();
+  sessionCreateMock.mock.restore();
+});
+
+test("createSession should reject unauthenticated requests with 401", async () => {
+  const req = {
+    body: {
+      problem: "Two Sum",
+      difficulty: "easy",
+    },
+    user: null,
+  };
+
+  const res = {
+    statusCode: null,
+    payload: null,
+    status(code) {
+      this.statusCode = code;
+      return this;
+    },
+    json(payload) {
+      this.payload = payload;
+      return this;
+    },
+  };
+
+  await createSession(req, res);
+
+  assert.equal(res.statusCode, 401);
+  assert.equal(res.payload.message, "Authentication required to create a session");
+});
+

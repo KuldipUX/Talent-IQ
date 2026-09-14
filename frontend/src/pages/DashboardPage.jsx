@@ -23,18 +23,25 @@ function DashboardPage() {
   const { data: recentSessionsData, isLoading: loadingRecentSessions } = useMyRecentSessions();
 
   const handleCreateRoom = () => {
-    if (!roomConfig.problem || !roomConfig.difficulty) return;
+    if (!roomConfig.problem) return;
+
+    const normalizedDifficulty = (roomConfig.difficulty || "easy").toLowerCase();
 
     createSessionMutation.mutate(
       {
         problem: roomConfig.problem,
-        difficulty: roomConfig.difficulty.toLowerCase(),
+        difficulty: normalizedDifficulty,
       },
       {
         onSuccess: (data) => {
           setShowCreateModal(false);
-          toast.success("Session created successfully!");
-          navigate(`/session/${data.session._id}`);
+          setRoomConfig({ problem: "", difficulty: "" });
+          if (data?.session?._id) {
+            toast.success("Session created successfully!");
+            navigate(`/session/${data.session._id}`);
+          } else {
+            toast.error(data?.message || "Failed to create session");
+          }
         },
         onError: (error) => {
           const message = error?.response?.data?.message || "Failed to create room";
@@ -57,9 +64,14 @@ function DashboardPage() {
     <>
       <div className="min-h-screen bg-base-300">
         <Navbar />
-        <WelcomeSection onCreateSession={() => setShowCreateModal(true)} />
+        <WelcomeSection
+          onCreateSession={() => {
+            setRoomConfig({ problem: "", difficulty: "" });
+            setShowCreateModal(true);
+          }}
+        />
 
-        Grid layout
+        {/* Grid layout */}
         <div className="container mx-auto px-6 pb-16">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <StatsCards
@@ -79,7 +91,10 @@ function DashboardPage() {
 
       <CreateSessionModal
         isOpen={showCreateModal}
-        onClose={() => setShowCreateModal(false)}
+        onClose={() => {
+          setShowCreateModal(false);
+          setRoomConfig({ problem: "", difficulty: "" });
+        }}
         roomConfig={roomConfig}
         setRoomConfig={setRoomConfig}
         onCreateRoom={handleCreateRoom}

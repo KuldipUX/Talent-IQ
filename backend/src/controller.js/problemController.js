@@ -3,7 +3,7 @@ import Problem from "../models/Problem.js";
 export async function getProblems(req, res) {
   try {
     const page = Math.max(1, Number(req.query.page) || 1);
-    const limit = Math.min(50, Math.max(1, Number(req.query.limit) || 10));
+    const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 10));
     const skip = (page - 1) * limit;
 
     const difficulty = String(req.query.difficulty || "").trim();
