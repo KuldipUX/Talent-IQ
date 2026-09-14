@@ -98,6 +98,12 @@ app.use(clerkMiddleware());
 // Routes
 // --------------------
 
+app.get("/", (req, res) => {
+  res.status(200).json({
+    message: "TalentIQ API is online",
+  });
+});
+
 app.get(["/health", "/api/health"], (req, res) => {
   res.status(200).json({
     message: "Success from api",
