@@ -16,13 +16,30 @@ import problemRoutes from "./routes/problemRoutes.js";
 
 const app = express();
 const httpServer = createServer(app);
-const allowedOrigins = [
+const configuredOrigins = [
   ...(ENV.CLIENT_URL || "").split(","),
   "http://localhost:5173",
   "http://localhost:5174",
+  "https://frontend-gamma-lime-70.vercel.app",
+  "https://frontend-gamma-lime-70.vercel.app/",
 ].map((origin) => origin.trim()).filter(Boolean);
+
 const isAllowedOrigin = (origin, callback) => {
-  callback(null, !origin || allowedOrigins.includes(origin));
+  if (!origin) {
+    return callback(null, true);
+  }
+
+  const cleanOrigin = origin.replace(/\/$/, "");
+  const matchesConfigured = configuredOrigins.some((allowed) => {
+    const cleanAllowed = allowed.replace(/\/$/, "");
+    return cleanAllowed === cleanOrigin || cleanAllowed.startsWith("http://localhost") && cleanOrigin.startsWith("http://localhost");
+  });
+
+  if (matchesConfigured || origin.includes("vercel.app") || origin.includes("localhost") || origin.includes("127.0.0.1")) {
+    return callback(null, true);
+  }
+
+  return callback(null, false);
 };
 
 // --------------------
