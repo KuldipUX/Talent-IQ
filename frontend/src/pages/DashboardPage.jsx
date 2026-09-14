@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router";
 import { useUser } from '@clerk/react';
 import { useState } from "react";
+import toast from "react-hot-toast";
 import { useActiveSessions, useCreateSession, useMyRecentSessions } from '../hooks/useSessions.js';
 
 import Navbar from "../components/Navbar";
@@ -32,7 +33,12 @@ function DashboardPage() {
       {
         onSuccess: (data) => {
           setShowCreateModal(false);
+          toast.success("Session created successfully!");
           navigate(`/session/${data.session._id}`);
+        },
+        onError: (error) => {
+          const message = error?.response?.data?.message || "Failed to create room";
+          toast.error(message);
         },
       }
     );

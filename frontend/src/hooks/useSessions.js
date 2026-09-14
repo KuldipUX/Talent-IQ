@@ -1,16 +1,11 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import toast from "react-hot-toast";
 import { sessionApi } from '../api/session.js';
 
 export const useCreateSession = () => {
-  const result = useMutation({
+  return useMutation({
     mutationKey: ["createSession"],
     mutationFn: sessionApi.createSession,
-    onSuccess: () => toast.success("Session created successfully!"),
-    onError: (error) => toast.error(error.response?.data?.message || "Failed to create room"),
   });
-
-  return result;
 };
 
 export const useActiveSessions = () => {
